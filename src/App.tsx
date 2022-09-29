@@ -39,7 +39,6 @@ const makeScene: (level: number, icons: Icon[]) => Scene = (level, icons) => {
     const offsetPool = [0, 25, -25, 50, -50].slice(0, 1 + curLevel);
 
     const scene: Scene = [];
-
     const range = [
         [2, 6],
         [1, 6],
@@ -47,8 +46,30 @@ const makeScene: (level: number, icons: Icon[]) => Scene = (level, icons) => {
         [0, 7],
         [0, 8],
     ][Math.min(4, curLevel - 1)];
+    let idx = 0
+    const checkSenseTypeX = (i: number, column: number, row: number, offset: number) => {
+        if (getRamdomNum().includes(i)) {
+            return idx * 3 + 100
+        } else {
+            return column * 100 + offset
+        }
+    }
+    const checkSenseTypeY = (i: number, column: number, row: number, offset: number) => {
+        if (getRamdomNum().includes(i)) {
+            return 900
+        } else {
+            return row * 100 + offset
+        }
+    }
+    const getRamdomNum = () => {
+        let arr: number[] = []
+        for (let i = 0; i <= 2 * level; i++) {
+            arr.push(Math.floor((Math.random() * 10)))
+        }
+        return arr
+    }
+    const randomSet = (icon: Icon, i: number) => {
 
-    const randomSet = (icon: Icon) => {
         const offset =
             offsetPool[Math.floor(offsetPool.length * Math.random())];
         const row =
@@ -61,10 +82,20 @@ const makeScene: (level: number, icons: Icon[]) => Scene = (level, icons) => {
             icon,
             id: randomString(4),
             x: column * 100 + offset,
-            y: row * 100 + offset,
+            y: row * 100 + offset
         });
-    };
 
+    };
+    // const Cards:Scene= scene.splice(0,10).map( (v,index):MySymbol=>{
+    //     return {
+    //         isCover: false,
+    //         status: 0,
+    //         icon:v.icon,
+    //         id: randomString(4),
+    //         x: 90+index,
+    //         y: v.y,
+    //     }
+    // }); 
     // 大于5级别增加icon池
     let compareLevel = curLevel;
     while (compareLevel > 0) {
@@ -76,7 +107,8 @@ const makeScene: (level: number, icons: Icon[]) => Scene = (level, icons) => {
 
     for (const icon of iconPool) {
         for (let i = 0; i < 6; i++) {
-            randomSet(icon);
+            idx += 1
+            randomSet(icon, idx);
         }
     }
 
@@ -147,6 +179,7 @@ const Symbol: FC<SymbolProps> = ({ x, y, icon, isCover, status, onClick }) => {
 const App: FC = () => {
     const [curTheme, setCurTheme] = useState<Theme<any>>(defaultTheme);
     const [scene, setScene] = useState<Scene>(makeScene(1, curTheme.icons));
+    console.log(scene, 22)
     const [level, setLevel] = useState<number>(1);
     const [queue, setQueue] = useState<MySymbol[]>([]);
     const [sortedQueue, setSortedQueue] = useState<
@@ -211,8 +244,8 @@ const App: FC = () => {
     }, []);
 
     // 向后检查覆盖
-    const checkCover = (scene: Scene) => {
-        const updateScene = scene.slice();
+    const checkCover = (scene: any) => {
+        const updateScene = scene;
         for (let i = 0; i < updateScene.length; i++) {
             // 当前item对角坐标
             const cur = updateScene[i];
@@ -394,23 +427,51 @@ const App: FC = () => {
                 <div className="scene-container">
                     <div className="scene-inner">
                         {scene.map((item, idx) => (
-                            <Symbol
+
+                            idx < scene.length - 4 * level ? <Symbol
                                 key={item.id}
                                 {...item}
                                 x={
                                     item.status === 0
                                         ? item.x
                                         : item.status === 1
-                                        ? sortedQueue[item.id]
-                                        : -1000
+                                            ? sortedQueue[item.id]
+                                            : -1000
                                 }
-                                y={item.status === 0 ? item.y : 895}
+                                y={item.status === 0 ? item.y : 1055}
+                                onClick={() => clickSymbol(idx)}
+                            /> : <Symbol
+                                key={item.id}
+                                {...item}
+                                x={
+                                    item.status === 0
+                                        ? item.x
+                                        : item.status === 1
+                                            ? sortedQueue[item.id]
+                                            : -1000
+                                }
+                                y={item.status === 0 ? item.y : 1055}
                                 onClick={() => clickSymbol(idx)}
                             />
                         ))}
                     </div>
                 </div>
             </div>
+            {/* <div className="list-me ">   {scene.map((item, idx) => (
+                <Symbol
+                    key={item.id}
+                    {...item}
+                    x={
+                        item.status === 0
+                            ? item.x
+                            : item.status === 1
+                                ? sortedQueue[item.id]
+                                : -1000
+                    }
+                    y={item.status === 0 ? item.y : 895}
+                    onClick={() => clickSymbol(idx)}
+                />
+            ))}</div> */}
             <div className="queue-container flex-container flex-center" />
             <div className="flex-container flex-between">
                 <button className="flex-grow" onClick={pop}>
